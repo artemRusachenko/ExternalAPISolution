@@ -1,0 +1,62 @@
+﻿@page "/profile"
+@using ExternalAPI.Client.Models
+
+@inject HttpClient Http
+
+<h3>Пошук профілю за логіном</h3>
+
+<input @bind="login" placeholder="Введіть логін" />
+<button @onclick="GetProfile">Отримати профіль</button>
+
+@if (isLoading)
+{
+    <p>Завантаження...</p>
+}
+else if (errorMessage != null)
+{
+    <p style="color:red">@errorMessage</p>
+}
+else if (profile != null)
+{
+    <h4>Профіль користувача:</h4>
+    <ul>
+        <li><b>Прізвище:</b> @profile.LastName</li>
+        <li><b>Ім’я:</b> @profile.FirstName</li>
+        <li><b>Курс:</b> @profile.Course</li>
+        <li><b>Група:</b> @profile.Group</li>
+    </ul>
+}
+
+@code {
+    private string login = string.Empty;
+    private LoginResponse? profile;
+    private bool isLoading = false;
+    private string? errorMessage;
+
+    private async Task GetProfile()
+    {
+        if (string.IsNullOrWhiteSpace(login))
+        {
+            errorMessage = "Будь ласка, введіть логін.";
+            profile = null;
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+        profile = null;
+
+        try
+        {
+            profile = await Http.GetFromJsonAsync<LoginResponse>($"api/profile/{login}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Помилка при завантаженні: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

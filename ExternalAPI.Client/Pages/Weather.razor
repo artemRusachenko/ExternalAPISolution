@@ -1,0 +1,37 @@
+﻿@page "/weather"
+@using ExternalAPI.Client.Models
+@inject HttpClient Http
+
+<h3>Погода в @weather?.Name</h3>
+
+@if (weather != null)
+{
+    <p>Температура: @weather.Main.Temp °C</p>
+    <p>Відчувається як: @weather.Main.Feels_like °C</p>
+    <p>Тиск: @weather.Main.Pressure гПа</p>
+    <p>Вологість: @weather.Main.Humidity %</p>
+    <p>Стан неба: @weather.Weather[0].Description</p>
+    <p>Вітер: @weather.Wind.Speed м/с, напрямок: @weather.Wind.Deg °</p>
+    <p>Країна: @weather.Sys.Country</p>
+}
+else
+{
+    <p>Введіть місто і натисніть кнопку для отримання погоди.</p>
+}
+
+<input @bind="city" placeholder="Введіть місто" />
+<button @onclick="GetWeather">Отримати погоду</button>
+
+@code {
+    private string city;
+    private WeatherResponse weather;
+
+    private async Task GetWeather()
+    {
+        var json = await Http.GetStringAsync($"/api/weather/{city}");
+        weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(json, new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+    }
+}
